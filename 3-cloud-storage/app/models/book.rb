@@ -11,11 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START connect]
+require "google/cloud/datastore"
 require "google/cloud/storage"
+require "google/cloud/vision"
 
-class Book < ActiveRecord::Base
 
+class Book
   def self.storage_bucket
     @storage_bucket ||= begin
       config = Rails.application.config.x.settings
@@ -24,16 +25,94 @@ class Book < ActiveRecord::Base
       storage.bucket config["gcs_bucket"]
     end
   end
-  # [END connect]
 
-  validates :title, presence: true
+  include ActiveModel::Model
+  include ActiveModel::Validations
 
-  attr_accessor :cover_image
+  attr_accessor :id, :description, :image_url, :cover_image
 
-  private
+  # Return a Google::Cloud::Datastore::Dataset for the configured dataset.
+  # The dataset is used to create, read, update, and delete entity objects.
+  def self.dataset
+    @dataset ||= Google::Cloud::Datastore.new(
+      project_id: Rails.application.config.
+                        database_configuration[Rails.env]["dataset_id"]
+    )
+  end
 
-  # [START upload]
-  after_create :upload_image, if: :cover_image
+  # Query Book entities from Cloud Datastore.
+  #
+  # returns an array of Book query results and a cursor
+  # that can be used to query for additional results.
+  def self.query options = {}
+    query = Google::Cloud::Datastore::Query.new
+    query.kind "Book"
+    query.limit options[:limit]   if options[:limit]
+    query.cursor options[:cursor] if options[:cursor]
+
+    results = dataset.run query
+    books   = results.map {|entity| Book.from_entity entity }
+
+    if options[:limit] && results.size == options[:limit]
+      next_cursor = results.cursor
+    end
+
+    return books, next_cursor
+  end
+
+  def self.from_entity entity
+    book = Book.new
+    book.id = entity.key.id
+    entity.properties.to_hash.each do |name, value|
+      book.send "#{name}=", value if book.respond_to? "#{name}="
+    end
+    book
+  end
+
+  # Lookup Book by ID.  Returns Book or nil.
+  def self.find id
+    query    = Google::Cloud::Datastore::Key.new "Book", id.to_i
+    entities = dataset.lookup query
+
+    from_entity entities.first if entities.any?
+  end
+
+  def save
+    if valid?
+      entity = to_entity
+      Book.dataset.save entity
+      self.id = entity.key.id
+      update_image if cover_image.present?
+      true
+    else
+      false
+    end
+  end
+
+  def to_entity
+    entity = Google::Cloud::Datastore::Entity.new
+    entity.key = Google::Cloud::Datastore::Key.new "Book", id
+    entity["image_url"]    = image_url    if image_url
+    entity["description"]    = description    if description
+    entity
+  end
+
+  def update attributes
+    attributes.each do |name, value|
+      send "#{name}=", value
+    end
+    save
+  end
+
+  def destroy
+    delete_image if image_url.present?
+
+    Book.dataset.delete Google::Cloud::Datastore::Key.new "Book", id
+  end
+
+  def persisted?
+    id.present?
+  end
 
   def upload_image
     file = Book.storage_bucket.create_file \
@@ -42,17 +121,13 @@ class Book < ActiveRecord::Base
       content_type: cover_image.content_type,
       acl: "public"
 
-    update_columns image_url: file.public_url
+    self.image_url = file.public_url
+
+    Book.dataset.save to_entity
   end
-  # [END upload]
-
-  # TODO what if the image is from the Pub/Sub job and NOT in Cloud Storage!?
-
-  # [START delete]
-  before_destroy :delete_image, if: :image_url
 
   def delete_image
-    image_uri = URI.parse image_url
+    image_uri = URI.parse image_url.gsub(" ", "%20")
 
     if image_uri.host == "#{Book.storage_bucket.name}.storage.googleapis.com"
       # Remove leading forward slash from image path
@@ -63,14 +138,30 @@ class Book < ActiveRecord::Base
       file.delete
     end
   end
-  # [END delete]
-
-  # [START update]
-  before_update :update_image, if: :cover_image
 
   def update_image
-    delete_image if image_url?
+    delete_image if image_url.present?
     upload_image
   end
-  # [END update]
+
+  def analyze
+    image_annotator = Google::Cloud::Vision::ImageAnnotator.new
+
+    response = image_annotator.text_detection(
+      image: image_url,
+      max_results: 1 # optional, defaults to 10
+    )
+
+    ocr_text = []
+    response.responses.each do |res|
+      res.text_annotations.each do |text|
+        ocr_text.push text.description
+      end
+    end
+
+    self.description = ocr_text.flatten
+
+    Book.dataset.save to_entity
+  end
+
 end

@@ -24,10 +24,6 @@
     <i class="glyphicon glyphicon-trash"></i>
     <span>Delete Book</span>
   <% end %>
-    <%= link_to book_analyze_path(@book), class: "btn btn-info btn-sm" do %>
-    <i class="glyphicon glyphicon-fire"></i>
-    <span>ANALYZE</span>
-  <% end %>
 </div>
 
 <%# [START book_details] %>
@@ -36,7 +32,7 @@
   <div class="media-left">
     <img src="<%= @book.image_url %>">
   </div>
-  <p><%= @book.description %></p>
   <!-- [END cover] -->
+  <p><%= @book.title %></p>
 </div>
 <%# [END book_details] %>

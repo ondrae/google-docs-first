@@ -15,10 +15,12 @@
 Rails.application.routes.draw do
 
   # Route root of application to BooksController#index action
-  root "books#index"
+  root "books#new"
 
   # Restful routes for BooksController
-  resources :books
+  resources :books do
+    get :analyze
+  end
 
 end
 # [END routes]
