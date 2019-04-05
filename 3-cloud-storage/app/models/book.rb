@@ -159,6 +159,12 @@ class Book
       end
     end
 
+    parsed_description = {}
+    fn_index = ocr_text.index("FN") + 1
+    parsed_description["First Name:"] = ocr_text[fn_index]
+    ln_index = ocr_text.index("LN") + 1
+    parsed_description["Last Name:"] = ocr_text[ln_index]
+
     self.description = ocr_text.flatten
 
     Book.dataset.save to_entity

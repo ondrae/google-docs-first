@@ -12,24 +12,29 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 %>
-
-<h3>Upload your ID</h3>
-
-<% if @book.errors.any? %>
-  <div class="errors">
-    <% @book.errors.full_messages.each do |message| %>
-      <div class="alert alert-danger"><%= message %></div>
-    <% end %>
+<main class="form-card text--centered">
+  <header class="form-card__header">
+    <%= image_tag "id-drawing" %>
+    <h1 class="form-card__title">Take a photo of your ID card</h1>
+    <p class="text--help">We'll use this to fill in your basic information.</p>
+  </header>
+  <div class="form-card__content">
+    <div class="form-group">
+    <!-- [START multipart] -->
+      <%= form_for @book, :html => { :multipart => true } do |f| %>
+      <!-- [END multipart] -->
+        <!-- [START cover_image] -->
+          <%= f.file_field :cover_image, hidden: true %>
+          <div class="file-upload">
+            <input type="file" id="book_cover_image" name="book[cover_image]" class="file-upload__input">
+            <label class="button" for="book_cover_image" class="file-upload__label">Take a photo <i class="button__icon icon-phone_iphone"></i></label>
+          </div>
+        <!-- [END cover_image] -->
+    </div>
   </div>
-<% end %>
-
-<!-- [START multipart] -->
-<%= form_for @book, :html => { :multipart => true } do |f| %>
-<!-- [END multipart] -->
-  <!-- [START cover_image] -->
-  <div class="form-group">
-    <%= f.file_field :cover_image %>
+  <div class="form-card__footer">
+    <button class="button button--primary" type="submit">Continue <i class="icon icon-arrow_forward"></i></button>
   </div>
-  <!-- [END cover_image] -->
-  <button class="btn btn-success" type="submit">Save</button>
-<% end %>
+  
+  <% end %>
+</main>

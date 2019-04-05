@@ -17,6 +17,7 @@
 /public/assets/
 config/database.yml
 config/settings.yml
+config/secrets.yml
 *.sqlite3
 /config/database.yml
 /gcd_dataset_directory/

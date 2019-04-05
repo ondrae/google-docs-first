@@ -28,3 +28,11 @@
  *= require_tree .
  *= require_self
  */
+
+ @import 'cfa_styleguide_main';
+
+ .form-card {
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+ }

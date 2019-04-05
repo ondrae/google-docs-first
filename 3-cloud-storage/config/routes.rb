@@ -22,5 +22,7 @@ Rails.application.routes.draw do
     get :analyze
   end
 
+  mount Cfa::Styleguide::Engine => "/cfa"
+
 end
 # [END routes]

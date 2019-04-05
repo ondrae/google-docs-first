@@ -19,6 +19,10 @@ gem "jquery-rails"
 gem "google-cloud-datastore", "~> 1.4"
 gem "google-cloud-storage", "~> 1.10"
 gem "google-cloud-vision", "~> 0.32.0"
+
+
+gem 'cfa-styleguide', git: 'https://github.com/codeforamerica/cfa-styleguide-gem'
+
 # gem "mini_magick"
 
 # group :production do

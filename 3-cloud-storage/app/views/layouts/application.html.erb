@@ -1,43 +1,36 @@
-<%#
-  Copyright 2015, Google, Inc.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-%>
-
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Docs First</title>
-    <meta charset="utf-8">
-    <meta name="viewset" content="width=device-width, initial-scale=1">
-    <%= stylesheet_link_tag "//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" %>
-    <%= javascript_include_tag "application" %>
+    <title>Docs first</title>
     <%= csrf_meta_tags %>
+
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
   </head>
+
   <body>
-    <div class="navbar navbar-default">
-      <div class="container">
-        <div class="navbar-header">
-          <div class="navbar-brand"><a href="/">Docs First</a></div>
+    <div class="page-wrapper">
+      <header class="main-header">
+        <div class="toolbar">
+          <div class="toolbar__left">
+            <h1 class="main-header__title"><a class="main-header__logo" href="/">Documents First</a></h1>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="container">
-      <% if flash.any? %>
-        <% flash.each do |type, message| %>
-          <div class="alert alert-<%= type %>"><%= message %></div>
-        <% end %>
-      <% end %>
-      <%= yield %>
+      </header>
+
+      <section class="slab">
+        <%= yield %>
+      </section>
+
+      <footer class="main-footer">
+        <div class="grid">
+          <div class="grid__item">
+            <p class="text--small">
+              This program is run by <a href="https://www.codeforamerica.org/">Code for America</a>.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   </body>
 </html>
